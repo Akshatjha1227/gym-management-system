@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IronForge Gym Management System</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap');
+
+  :root {
+    --primary: #E8292C;
+    --primary-dark: #B01E20;
+    --dark: #111111;
+    --dark2: #1C1C1C;
+    --dark3: #252525;
+    --accent: #F5A623;
+    --text-muted: #888;
+    --sidebar-w: 240px;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: 'Barlow', sans-serif; background: #0E0E0E; color: #EAEAEA; min-height: 100vh; }
+
+  /* SIDEBAR */
+  #sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0; width: var(--sidebar-w);
+    background: var(--dark2); border-right: 1px solid #2a2a2a;
+    display: flex; flex-direction: column; z-index: 100;
+  }
+  .sidebar-logo {
+    padding: 24px 20px 16px;
+    border-bottom: 1px solid #2a2a2a;
+  }
+  .sidebar-logo h1 { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--primary); margin: 0; letter-spacing: 2px; }
+  .sidebar-logo small { font-size: 11px; color: var(--text-muted); letter-spacing: 3px; text-transform: uppercase; }
+  .nav-section { padding: 20px 12px 4px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); }
+  .nav-item { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-radius: 8px; cursor: pointer;
+    color: #aaa; font-size: 14px; font-weight: 500; transition: all 0.15s; margin: 2px 8px; }
+  .nav-item:hover { background: #2a2a2a; color: #fff; }
+  .nav-item.active { background: var(--primary); color: #fff; }
+  .nav-item i { font-size: 18px; width: 20px; text-align: center; }
+  .sidebar-footer { margin-top: auto; padding: 16px; border-top: 1px solid #2a2a2a; font-size: 12px; color: var(--text-muted); }
+
+  /* MAIN */
+  #main { margin-left: var(--sidebar-w); padding: 28px; min-height: 100vh; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+  .topbar h2 { font-family: 'Bebas Neue', sans-serif; font-size: 32px; margin: 0; letter-spacing: 1px; color: #fff; }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+  /* STAT CARDS */
+  .stat-card { background: var(--dark2); border: 1px solid #2a2a2a; border-radius: 12px; padding: 20px 22px; }
+  .stat-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; line-height: 1; color: #fff; }
+  .stat-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  .icon-red { background: rgba(232,41,44,0.15); color: var(--primary); }
+  .icon-amber { background: rgba(245,166,35,0.15); color: var(--accent); }
+  .icon-green { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .icon-blue { background: rgba(59,130,246,0.15); color: #3b82f6; }
+
+  /* SECTION PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* CARD */
+  .panel { background: var(--dark2); border: 1px solid #2a2a2a; border-radius: 12px; overflow: hidden; }
+  .panel-header { padding: 16px 20px; border-bottom: 1px solid #2a2a2a; display: flex; align-items: center; justify-content: space-between; }
+  .panel-header h5 { margin: 0; font-size: 15px; font-weight: 600; color: #fff; }
+  .panel-body { padding: 20px; }
+
+  /* TABLE */
+  .table-dark { --bs-table-bg: transparent; --bs-table-striped-bg: #1f1f1f; --bs-table-hover-bg: #252525; }
+  .table td, .table th { border-color: #2a2a2a !important; padding: 12px 16px; vertical-align: middle; }
+  .table th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); font-weight: 600; }
+  .table td { font-size: 14px; }
+
+  /* BADGE STATUS */
+  .badge-active { background: rgba(34,197,94,0.15); color: #22c55e; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-expired { background: rgba(232,41,44,0.15); color: var(--primary); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-pending { background: rgba(245,166,35,0.15); color: var(--accent); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .badge-plan { background: rgba(59,130,246,0.15); color: #3b82f6; padding: 3px 8px; border-radius: 20px; font-size: 11px; }
+
+  /* BUTTONS */
+  .btn-primary { background: var(--primary); border-color: var(--primary); font-weight: 600; letter-spacing: 0.5px; }
+  .btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+  .btn-outline-secondary { border-color: #333; color: #ccc; }
+  .btn-outline-secondary:hover { background: #2a2a2a; color: #fff; border-color: #444; }
+  .btn-sm { font-size: 12px; padding: 4px 10px; }
+
+  /* FORM */
+  .form-control, .form-select {
+    background: #1a1a1a; border: 1px solid #333; color: #eee; border-radius: 8px;
+  }
+  .form-control:focus, .form-select:focus {
+    background: #1a1a1a; border-color: var(--primary); color: #eee; box-shadow: 0 0 0 3px rgba(232,41,44,0.15);
+  }
+  .form-label { font-size: 13px; color: #aaa; font-weight: 500; }
+  .form-control::placeholder { color: #555; }
+
+  /* MODAL */
+  .modal-content { background: var(--dark2); border: 1px solid #333; border-radius: 14px; }
+  .modal-header { border-bottom: 1px solid #2a2a2a; padding: 18px 24px; }
+  .modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1px; }
+  .modal-footer { border-top: 1px solid #2a2a2a; }
+  .btn-close { filter: invert(1); }
+
+  /* SEARCH */
+  .search-box { position: relative; }
+  .search-box i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #555; font-size: 16px; }
+  .search-box input { padding-left: 38px; }
+
+  /* MEMBER AVATAR */
+  .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0; }
+
+  /* CALENDAR */
+  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
+  .cal-day-header { text-align: center; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--text-muted); padding: 6px 0; }
+  .cal-day { min-height: 72px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 8px; padding: 6px 8px; }
+  .cal-day.today { border-color: var(--primary); }
+  .cal-day-num { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .cal-event { font-size: 11px; background: rgba(232,41,44,0.2); color: #f87171; padding: 2px 6px; border-radius: 4px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* PROGRESS */
+  .progress { height: 6px; background: #2a2a2a; border-radius: 10px; }
+  .progress-bar { background: var(--primary); border-radius: 10px; }
+
+  /* ATTENDANCE LOG */
+  .attendance-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #222; }
+  .attendance-row:last-child { border-bottom: none; }
+  .time-badge { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 600; color: #ccc; min-width: 70px; text-align: center; }
+
+  /* PAYMENT CARD */
+  .payment-card { background: linear-gradient(135deg, #1a1a1a, #252525); border: 1px solid #333; border-radius: 12px; padding: 18px; }
+
+  /* PLAN CARDS */
+  .plan-card { background: var(--dark3); border: 1px solid #2a2a2a; border-radius: 12px; padding: 22px; position: relative; transition: border-color 0.2s; }
+  .plan-card:hover { border-color: var(--primary); }
+  .plan-card.popular { border-color: var(--accent); }
+  .plan-price { font-family: 'Bebas Neue', sans-serif; font-size: 44px; color: #fff; line-height: 1; }
+  .plan-price span { font-size: 18px; color: var(--text-muted); }
+
+  /* TOAST */
+  #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; }
+  .toast-msg { background: #1e1e1e; border: 1px solid #333; border-radius: 10px; padding: 14px 18px; margin-top: 8px;
+    display: flex; align-items: center; gap: 10px; font-size: 14px; min-width: 240px;
+    animation: slideIn 0.3s ease; }
+  .toast-msg.success { border-left: 3px solid #22c55e; }
+  .toast-msg.error { border-left: 3px solid var(--primary); }
+  .toast-msg.info { border-left: 3px solid #3b82f6; }
+  @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); transition: transform 0.3s; }
+    #sidebar.open { transform: translateX(0); }
+    #main { margin-left: 0; padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-logo">
+    <h1><i class="bi bi-lightning-fill me-1"></i>IronForge</h1>
+    <small>Gym Management</small>
+  </div>
+
+  <div class="nav-section">Main</div>
+  <div class="nav-item active" onclick="showPage('dashboard')"><i class="bi bi-grid-1x2"></i> Dashboard</div>
+  <div class="nav-item" onclick="showPage('members')"><i class="bi bi-people"></i> Members</div>
+  <div class="nav-item" onclick="showPage('attendance')"><i class="bi bi-calendar-check"></i> Attendance</div>
+
+  <div class="nav-section">Business</div>
+  <div class="nav-item" onclick="showPage('payments')"><i class="bi bi-credit-card"></i> Payments</div>
+  <div class="nav-item" onclick="showPage('plans')"><i class="bi bi-tags"></i> Membership Plans</div>
+  <div class="nav-item" onclick="showPage('trainers')"><i class="bi bi-person-badge"></i> Trainers</div>
+
+  <div class="nav-section">More</div>
+  <div class="nav-item" onclick="showPage('schedule')"><i class="bi bi-calendar3"></i> Class Schedule</div>
+  <div class="nav-item" onclick="showPage('equipment')"><i class="bi bi-tools"></i> Equipment</div>
+  <div class="nav-item" onclick="showPage('reports')"><i class="bi bi-bar-chart-line"></i> Reports</div>
+
+  <div class="sidebar-footer">
+    <div class="d-flex align-items-center gap-2">
+      <div class="avatar" style="background:#e8292c20;color:var(--primary);">AD</div>
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#ddd;">Admin</div>
+        <div style="font-size:11px;color:#555;">ironforge.gym</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main id="main">
+
+  <!-- ===== DASHBOARD ===== -->
+  <div id="page-dashboard" class="page active">
+    <div class="topbar">
+      <h2><i class="bi bi-grid-1x2 me-2" style="font-size:26px"></i>Dashboard</h2>
+      <div class="topbar-actions">
+        <span style="font-size:13px;color:#666;" id="current-date"></span>
+        <button class="btn btn-primary btn-sm" onclick="showPage('members');openModal('addMemberModal')">
+          <i class="bi bi-plus-lg me-1"></i>New Member
+        </button>
+      </div>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-3 col-6">
+        <div class="stat-card d-flex align-items-start justify-content-between">
+          <div>
+            <div class="stat-label">Total Members</div>
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-sub">All registered</div>
+          </div>
+          <div class="stat-icon icon-red"><i class="bi bi-people-fill"></i></div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card d-flex align-items-start justify-content-between">
+          <div>
+            <div class="stat-label">Active Members</div>
+            <div class="stat-value" id="stat-active" style="color:#22c55e">0</div>
+            <div class="stat-sub">Valid memberships</div>
+          </div>
+          <div class="stat-icon icon-green"><i class="bi bi-person-check-fill"></i></div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card d-flex align-items-start justify-content-between">
+          <div>
+            <div class="stat-label">Monthly Revenue</div>
+            <div class="stat-value" id="stat-revenue" style="color:var(--accent)">₹0</div>
+            <div class="stat-sub">This month</div>
+          </div>
+          <div class="stat-icon icon-amber"><i class="bi bi-currency-rupee"></i></div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card d-flex align-items-start justify-content-between">
+          <div>
+            <div class="stat-label">Today Check-ins</div>
+            <div class="stat-value" id="stat-checkin" style="color:#3b82f6">0</div>
+            <div class="stat-sub">Active today</div>
+          </div>
+          <div class="stat-icon icon-blue"><i class="bi bi-box-arrow-in-right"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3">
+      <!-- Recent Members -->
+      <div class="col-lg-7">
+        <div class="panel">
+          <div class="panel-header">
+            <h5><i class="bi bi-people me-2"></i>Recent Members</h5>
+            <button class="btn btn-outline-secondary btn-sm" onclick="showPage('members')">View All</button>
+          </div>
+          <table class="table table-dark table-hover mb-0" id="dash-member-table">
+            <thead><tr><th>Member</th><th>Plan</th><th>Status</th><th>Joined</th></tr></thead>
+            <tbody id="dash-member-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Check-In -->
+      <div class="col-lg-5">
+        <div class="panel mb-3">
+          <div class="panel-header"><h5><i class="bi bi-qr-code me-2"></i>Quick Check-In</h5></div>
+          <div class="panel-body">
+            <div class="search-box mb-3">
+              <i class="bi bi-search"></i>
+              <input type="text" class="form-control" id="checkin-search" placeholder="Search member name or ID...">
+            </div>
+            <div id="checkin-result" class="mb-2"></div>
+            <button class="btn btn-primary w-100" onclick="doCheckin()"><i class="bi bi-box-arrow-in-right me-2"></i>Check In</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h5><i class="bi bi-clock-history me-2"></i>Today's Check-ins</h5></div>
+          <div class="panel-body" id="today-checkins" style="max-height:200px;overflow-y:auto;">
+            <div style="color:#555;font-size:13px;text-align:center;padding:20px 0;">No check-ins yet today</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MEMBERS ===== -->
+  <div id="page-members" class="page">
+    <div class="topbar">
+      <h2><i class="bi bi-people me-2" style="font-size:26px"></i>Members</h2>
+      <div class="topbar-actions">
+        <div class="search-box">
+          <i class="bi bi-search"></i>
+          <input type="text" class="form-control" id="member-search" placeholder="Search..." oninput="filterMembers()">
+        </div>
+        <button class="btn btn-primary" onclick="openModal('addMemberModal')">
+          <i class="bi bi-plus-lg me-1"></i>Add Member
+        </button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h5>All Members</h5>
+        <select class="form-select form-select-sm" style="width:auto" onchange="filterMembers(this.value)">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="expired">Expired</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+          <thead><tr><th>#</th><th>Member</th><th>Phone</th><th>Plan</th><th>Join Date</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="members-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ATTENDANCE ===== -->
+  <div id="page-attendance" class="page">
+    <div class="topbar">
+      <h2><i class="bi bi-calendar-check me-2" style="font-size:26px"></i>Attendance</h2>
+      <div class="topbar-actions">
+        <input type="date" class="form-control" id="att-date" style="width:auto">
+        <button class="btn btn-primary" onclick="filterAttendance()"><i class="bi bi-funnel me-1"></i>Filter</button>
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-8">
+        <div class="panel">
+          <div class="panel-header"><h5><i class="bi bi-list-check me-2"></i>Attendance Log</h5></div>
+          <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+              <thead><tr><th>Member</th><th>Check-In</th><th>Check-Out</th><th>Duration</th><th>Date</th></tr></thead>
+              <tbody id="att-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="panel mb-3">
+          <div class="panel-header"><h5>Today Summary</h5></div>
+          <div class="panel-body">
+            <div class="d-flex justify-content-between mb-3">
+              <span style="color:#aaa">Total Check-ins</span>
+              <strong id="att-total-today">0</strong>
+            </div>
+            <div class="d-flex justify-content-between mb-3">
+              <span style="color:#aaa">Currently In Gym</span>
+              <strong style="color:#22c55e" id="att-in-gym">0</strong>
+            </div>
+            <div class="d-flex justify-content-between">
+              <span style="color:#aaa">Checked Out</span>
+              <strong id="att-out">0</strong>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h5>Weekly Overview</h5></div>
+          <div class="panel-body" id="weekly-att"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAYMENTS ===== -->
+  <div id="page-payments" class="page">
+    <div class="topbar">
+      <h2><i class="bi bi-credit-card me-2" style="font-size:26px"></i>Payments</h2>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" onclick="openModal('addPaymentModal')">
+          <i class="bi bi-plus-lg me-1"></i>Record Payment
+        </button>
+      </div>
+    </div>
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="payment-card">
+          <div class="stat-label">Total Revenue</div>
+          <div class="stat-value" id="total-revenue">₹0</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="payment-card">
+          <div class="stat-label">This Month</div>
+          <div class="stat-value" id="month-revenue" style="color:var(--accent)">₹0</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="payment-card">
+          <div class="stat-label">Pending Dues</div>
+          <div class="stat-value" id="pending-dues" style="color:var(--primary)">0</div>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header"><h5><i class="bi bi-receipt me-2"></i>Payment History</h5></div>
+      <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+          <thead><tr><th>Receipt #</th><th>Member</th><th>Plan</th><th>Amount</th><th>Method</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody id="pay-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PLANS ===== -->
+  <div id="page-plans" class="page">
+    <div class="topbar">
+      <h2><i class="bi bi-tags me-2" style="font-size:26px"></i>Membership Plans</h2>
+      <button class="btn btn-primary" onclick="openModal('addPlanModal')">
+        <i class="bi bi-plus-lg me-1"></i>Add Plan
+      </button>
+    </div>
+    <div class="row g-3" id="plans-grid"></div>
+  </div>
+
+  <!-- ===== TRAINERS ===== -->
+  <div id="page-trainers" class="page">
+    <div class="topbar">
+      <h2><i class="bi bi-person-badge me-2" style="font-size:26px"></i>Trainers</h2>
+      <button class="btn btn-primary" onclick="openModal('addTrainerModal')">
+        <i class="bi bi-plus-lg me-1"></i>Add Trainer
+      </button>
+    </div>
+    <div class="row g-3" id="trainers-grid"></div>
+  </div>
+
+  <!-- ===== SCHEDULE ===== -->
+  <div id="page-schedule" class="page">
+    <div class="topbar">
+      <h2><i class="bi bi-calendar3 me-2" style="font-size:26px"></i>Class Schedule</h2>
+      <button class="btn btn-primary" onclick="openModal('addClassModal')">
+        <i class="bi bi-plus-lg me-1"></i>Add Class
+      </button>
+    </div>
+    <div class="row g-3">
+      <div class="col-lg-8">
+        <div class="panel">
+          <div class="panel-header"><h5>Weekly Schedule</h5></div>
+          <div class="panel-body">
+            <div class="cal-grid mb-2">
+              <div class="cal-day-header">Sun</div><div class="cal-day-header">Mon</div>
+              <div class="cal-day-header">Tue</div><div class="cal-day-header">Wed</div>
+              <div class="cal-day-header">Thu</div><div class="cal-day-header">Fri</div>
+              <div class="cal-day-header">Sat</div>
+            </div>
+            <div id="schedule-cal"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="panel">
+          <div class="panel-header"><h5>Upcoming Classes</h5></div>
+          <div class="panel-body" id="upcoming-classes"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== EQUIPMENT ===== -->
+  <div id="page-equipment" class="page">
+    <div class="topbar">
+      <h2><i class="bi bi-tools me-2" style="font-size:26px"></i>Equipment</h2>
+      <button class="btn btn-primary" onclick="openModal('addEquipModal')">
+        <i class="bi bi-plus-lg me-1"></i>Add Equipment
+      </button>
+    </div>
+    <div class="panel">
+      <div class="table-responsive">
+        <table class="table table-dark table-hover mb-0">
+          <thead><tr><th>#</th><th>Equipment</th><th>Category</th><th>Quantity</th><th>Condition</th><th>Last Serviced</th><th>Actions</th></tr></thead>
+          <tbody id="equip-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REPORTS ===== -->
+  <div id="page-reports" class="page">
+    <div class="topbar">
+      <h2><i class="bi bi-bar-chart-line me-2" style="font-size:26px"></i>Reports</h2>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="panel">
+          <div class="panel-header"><h5>Revenue by Plan</h5></div>
+          <div class="panel-body" id="rev-by-plan"></div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="panel">
+          <div class="panel-header"><h5>Membership Distribution</h5></div>
+          <div class="panel-body" id="mem-distribution"></div>
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="panel">
+          <div class="panel-header"><h5><i class="bi bi-download me-2"></i>Export Data</h5></div>
+          <div class="panel-body">
+            <div class="row g-3">
+              <div class="col-md-3"><button class="btn btn-outline-secondary w-100" onclick="exportCSV('members')"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Members CSV</button></div>
+              <div class="col-md-3"><button class="btn btn-outline-secondary w-100" onclick="exportCSV('payments')"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Payments CSV</button></div>
+              <div class="col-md-3"><button class="btn btn-outline-secondary w-100" onclick="exportCSV('attendance')"><i class="bi bi-file-earmark-spreadsheet me-2"></i>Attendance CSV</button></div>
+              <div class="col-md-3"><button class="btn btn-outline-secondary w-100" onclick="printReport()"><i class="bi bi-printer me-2"></i>Print Report</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ======= MODALS ======= -->
+
+<!-- ADD MEMBER -->
+<div class="modal fade" id="addMemberModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Add New Member</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Full Name *</label><input type="text" class="form-control" id="m-name" placeholder="John Doe"></div>
+          <div class="col-md-6"><label class="form-label">Phone *</label><input type="text" class="form-control" id="m-phone" placeholder="+91 98765 43210"></div>
+          <div class="col-md-6"><label class="form-label">Email</label><input type="email" class="form-control" id="m-email" placeholder="john@email.com"></div>
+          <div class="col-md-6"><label class="form-label">Date of Birth</label><input type="date" class="form-control" id="m-dob"></div>
+          <div class="col-md-6"><label class="form-label">Gender</label>
+            <select class="form-select" id="m-gender">
+              <option>Male</option><option>Female</option><option>Other</option>
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Membership Plan *</label>
+            <select class="form-select" id="m-plan"></select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Join Date</label><input type="date" class="form-control" id="m-join"></div>
+          <div class="col-md-6"><label class="form-label">Assigned Trainer</label>
+            <select class="form-select" id="m-trainer"><option value="">No Trainer</option></select>
+          </div>
+          <div class="col-12"><label class="form-label">Address</label><textarea class="form-control" id="m-address" rows="2"></textarea></div>
+          <div class="col-md-6"><label class="form-label">Emergency Contact</label><input type="text" class="form-control" id="m-emergency" placeholder="Name & Phone"></div>
+          <div class="col-md-6"><label class="form-label">Health Notes</label><input type="text" class="form-control" id="m-health" placeholder="Allergies, conditions..."></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="addMember()"><i class="bi bi-check-lg me-1"></i>Add Member</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW MEMBER -->
+<div class="modal fade" id="viewMemberModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Member Details</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="view-member-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PAYMENT -->
+<div class="modal fade" id="addPaymentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-receipt me-2"></i>Record Payment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label">Member *</label>
+            <select class="form-select" id="p-member"></select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Plan *</label>
+            <select class="form-select" id="p-plan"></select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Amount (₹) *</label>
+            <input type="number" class="form-control" id="p-amount" placeholder="0"></div>
+          <div class="col-md-6"><label class="form-label">Payment Method</label>
+            <select class="form-select" id="p-method">
+              <option>Cash</option><option>UPI</option><option>Card</option><option>Net Banking</option>
+            </select>
+          </div>
+          <div class="col-md-6"><label class="form-label">Date</label>
+            <input type="date" class="form-control" id="p-date"></div>
+          <div class="col-12"><label class="form-label">Notes</label>
+            <input type="text" class="form-control" id="p-notes" placeholder="Optional notes..."></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="addPayment()"><i class="bi bi-check-lg me-1"></i>Record</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PLAN -->
+<div class="modal fade" id="addPlanModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-tag me-2"></i>Add Membership Plan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label">Plan Name *</label><input type="text" class="form-control" id="pl-name" placeholder="e.g. Monthly Basic"></div>
+          <div class="col-md-6"><label class="form-label">Duration (days) *</label><input type="number" class="form-control" id="pl-duration" placeholder="30"></div>
+          <div class="col-md-6"><label class="form-label">Price (₹) *</label><input type="number" class="form-control" id="pl-price" placeholder="999"></div>
+          <div class="col-12"><label class="form-label">Features (comma-separated)</label><input type="text" class="form-control" id="pl-features" placeholder="Gym Access, Locker, WiFi"></div>
+          <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" id="pl-desc" rows="2" placeholder="Brief description..."></textarea></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="addPlan()">Add Plan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TRAINER -->
+<div class="modal fade" id="addTrainerModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-person-badge me-2"></i>Add Trainer</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Name *</label><input type="text" class="form-control" id="tr-name" placeholder="Trainer Name"></div>
+          <div class="col-md-6"><label class="form-label">Specialization *</label><input type="text" class="form-control" id="tr-spec" placeholder="e.g. Weight Training"></div>
+          <div class="col-md-6"><label class="form-label">Phone</label><input type="text" class="form-control" id="tr-phone" placeholder="+91..."></div>
+          <div class="col-md-6"><label class="form-label">Experience (years)</label><input type="number" class="form-control" id="tr-exp" placeholder="3"></div>
+          <div class="col-12"><label class="form-label">Certifications</label><input type="text" class="form-control" id="tr-cert" placeholder="ACE, NASM..."></div>
+          <div class="col-md-6"><label class="form-label">Salary (₹/month)</label><input type="number" class="form-control" id="tr-salary" placeholder="25000"></div>
+          <div class="col-md-6"><label class="form-label">Join Date</label><input type="date" class="form-control" id="tr-join"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="addTrainer()">Add Trainer</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD CLASS -->
+<div class="modal fade" id="addClassModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-calendar-plus me-2"></i>Add Class</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12"><label class="form-label">Class Name *</label><input type="text" class="form-control" id="cl-name" placeholder="e.g. Zumba, CrossFit..."></div>
+          <div class="col-md-6"><label class="form-label">Trainer</label>
+            <select class="form-select" id="cl-trainer"></select></div>
+          <div class="col-md-6"><label class="form-label">Day</label>
+            <select class="form-select" id="cl-day">
+              <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+              <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+            </select></div>
+          <div class="col-md-6"><label class="form-label">Time *</label><input type="time" class="form-control" id="cl-time"></div>
+          <div class="col-md-6"><label class="form-label">Duration (min)</label><input type="number" class="form-control" id="cl-duration" placeholder="60"></div>
+          <div class="col-md-6"><label class="form-label">Max Capacity</label><input type="number" class="form-control" id="cl-capacity" placeholder="20"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="addClass()">Add Class</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EQUIPMENT -->
+<div class="modal fade" id="addEquipModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-tools me-2"></i>Add Equipment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-6"><label class="form-label">Equipment Name *</label><input type="text" class="form-control" id="eq-name" placeholder="Treadmill"></div>
+          <div class="col-md-6"><label class="form-label">Category</label>
+            <select class="form-select" id="eq-cat">
+              <option>Cardio</option><option>Strength</option><option>Flexibility</option><option>Free Weights</option><option>Machines</option>
+            </select></div>
+          <div class="col-md-6"><label class="form-label">Quantity</label><input type="number" class="form-control" id="eq-qty" value="1"></div>
+          <div class="col-md-6"><label class="form-label">Condition</label>
+            <select class="form-select" id="eq-condition">
+              <option>Excellent</option><option>Good</option><option>Fair</option><option>Needs Repair</option>
+            </select></div>
+          <div class="col-md-6"><label class="form-label">Purchase Date</label><input type="date" class="form-control" id="eq-purchase"></div>
+          <div class="col-md-6"><label class="form-label">Last Serviced</label><input type="date" class="form-control" id="eq-service"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-primary" onclick="addEquipment()">Add Equipment</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toast-container"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script>
+// ============ DATA STORE ============
+const DB = {
+  get: (k) => JSON.parse(localStorage.getItem('gym_'+k)||'[]'),
+  set: (k,v) => localStorage.setItem('gym_'+k, JSON.stringify(v)),
+  nextId: (k) => { let n = parseInt(localStorage.getItem('gym_seq_'+k)||'0')+1; localStorage.setItem('gym_seq_'+k,n); return n; }
+};
+
+// ============ SEED DATA ============
+function seedData() {
+  if(DB.get('seeded').length) return;
+  
+  const plans = [
+    {id:1,name:'Monthly Basic',duration:30,price:999,features:['Gym Access','Locker'],desc:'Basic gym access'},
+    {id:2,name:'Monthly Pro',duration:30,price:1799,features:['Gym Access','Locker','Classes','Trainer Session'],desc:'Pro monthly'},
+    {id:3,name:'Quarterly',duration:90,price:2499,features:['Gym Access','Locker','Classes','2 Trainer Sessions'],desc:'Quarterly membership'},
+    {id:4,name:'Annual',duration:365,price:7999,features:['Full Access','Locker','All Classes','Unlimited Trainer','Sauna'],desc:'Best value yearly plan'},
+  ];
+  DB.set('plans', plans);
+
+  const trainers = [
+    {id:1,name:'Rahul Sharma',spec:'Weight Training',phone:'9876543210',exp:5,cert:'ACE, CSCS',salary:32000,join:'2022-01-15'},
+    {id:2,name:'Priya Patel',spec:'Yoga & Cardio',phone:'9765432109',exp:4,cert:'RYT-200',salary:28000,join:'2022-06-01'},
+    {id:3,name:'Amit Verma',spec:'CrossFit',phone:'9654321098',exp:6,cert:'CF-L2',salary:35000,join:'2021-09-10'},
+  ];
+  DB.set('trainers', trainers);
+
+  const today = new Date(); 
+  const members = [
+    {id:1,name:'Arjun Singh',phone:'9111111111',email:'arjun@email.com',gender:'Male',plan:'Monthly Pro',planId:2,join:'2024-01-10',expiry:addDays(today,15),trainer:'Rahul Sharma',address:'Bhopal, MP',emergency:'Suresh Singh 911',health:'None',status:'active'},
+    {id:2,name:'Sneha Gupta',phone:'9222222222',email:'sneha@email.com',gender:'Female',plan:'Annual',planId:4,join:'2024-02-01',expiry:addDays(today,200),trainer:'Priya Patel',address:'Bhopal, MP',emergency:'Rina Gupta 922',health:'Asthma',status:'active'},
+    {id:3,name:'Vikram Joshi',phone:'9333333333',email:'vikram@email.com',gender:'Male',plan:'Monthly Basic',planId:1,join:'2024-03-05',expiry:addDays(today,-5),trainer:'',address:'Indore, MP',emergency:'',health:'None',status:'expired'},
+    {id:4,name:'Nisha Rao',phone:'9444444444',email:'nisha@email.com',gender:'Female',plan:'Quarterly',planId:3,join:'2024-04-01',expiry:addDays(today,60),trainer:'Priya Patel',address:'Bhopal, MP',emergency:'',health:'None',status:'active'},
+    {id:5,name:'Rohan Mehra',phone:'9555555555',email:'rohan@email.com',gender:'Male',plan:'Monthly Pro',planId:2,join:'2024-05-01',expiry:addDays(today,3),trainer:'Amit Verma',address:'Bhopal, MP',emergency:'',health:'None',status:'active'},
+  ];
+  DB.set('members', members);
+
+  const payments = [
+    {id:1,memberId:1,member:'Arjun Singh',plan:'Monthly Pro',amount:1799,method:'UPI',date:'2024-01-10',status:'paid',notes:''},
+    {id:2,memberId:2,member:'Sneha Gupta',plan:'Annual',amount:7999,method:'Card',date:'2024-02-01',status:'paid',notes:''},
+    {id:3,memberId:3,member:'Vikram Joshi',plan:'Monthly Basic',amount:999,method:'Cash',date:'2024-03-05',status:'paid',notes:''},
+    {id:4,memberId:4,member:'Nisha Rao',plan:'Quarterly',amount:2499,method:'UPI',date:'2024-04-01',status:'paid',notes:''},
+    {id:5,memberId:5,member:'Rohan Mehra',plan:'Monthly Pro',amount:1799,method:'Net Banking',date:'2024-05-01',status:'paid',notes:''},
+  ];
+  DB.set('payments', payments);
+
+  const classes = [
+    {id:1,name:'Morning Yoga',trainer:'Priya Patel',day:'Monday',time:'06:30',duration:60,capacity:15},
+    {id:2,name:'CrossFit HIIT',trainer:'Amit Verma',day:'Monday',time:'07:30',duration:45,capacity:20},
+    {id:3,name:'Zumba',trainer:'Priya Patel',day:'Wednesday',time:'06:00',duration:60,capacity:25},
+    {id:4,name:'Powerlifting',trainer:'Rahul Sharma',day:'Friday',time:'08:00',duration:90,capacity:10},
+    {id:5,name:'Pilates',trainer:'Priya Patel',day:'Saturday',time:'09:00',duration:60,capacity:20},
+  ];
+  DB.set('classes', classes);
+
+  const equipment = [
+    {id:1,name:'Treadmill',category:'Cardio',qty:5,condition:'Good',purchase:'2022-01-01',service:'2024-03-01'},
+    {id:2,name:'Dumbbells Set',category:'Free Weights',qty:10,condition:'Excellent',purchase:'2021-06-01',service:'2024-01-01'},
+    {id:3,name:'Bench Press',category:'Strength',qty:3,condition:'Good',purchase:'2022-03-01',service:'2024-02-01'},
+    {id:4,name:'Elliptical',category:'Cardio',qty:3,condition:'Fair',purchase:'2021-01-01',service:'2023-12-01'},
+    {id:5,name:'Pull-up Bar',category:'Strength',qty:4,condition:'Excellent',purchase:'2023-01-01',service:'2024-01-01'},
+  ];
+  DB.set('equipment', equipment);
+
+  // Today attendance
+  const todayStr = fmtDate(today);
+  const attendance = [
+    {id:1,memberId:1,member:'Arjun Singh',checkin:'06:45',checkout:'08:15',duration:'1h 30m',date:todayStr},
+    {id:2,memberId:2,member:'Sneha Gupta',checkin:'07:00',checkout:'08:30',duration:'1h 30m',date:todayStr},
+    {id:3,memberId:5,member:'Rohan Mehra',checkin:'09:00',checkout:'',duration:'-',date:todayStr},
+  ];
+  DB.set('attendance', attendance);
+
+  DB.set('seeded', [true]);
+  localStorage.setItem('gym_seq_members', '5');
+  localStorage.setItem('gym_seq_payments', '5');
+  localStorage.setItem('gym_seq_plans', '4');
+  localStorage.setItem('gym_seq_trainers', '3');
+  localStorage.setItem('gym_seq_classes', '5');
+  localStorage.setItem('gym_seq_equipment', '5');
+  localStorage.setItem('gym_seq_attendance', '3');
+}
+
+// ============ HELPERS ============
+function fmtDate(d) { return d.toISOString().split('T')[0]; }
+function addDays(d,n) { let x=new Date(d); x.setDate(x.getDate()+n); return fmtDate(x); }
+function today() { return fmtDate(new Date()); }
+function randColor(name) {
+  const colors = ['#e8292c','#f5a623','#22c55e','#3b82f6','#8b5cf6','#ec4899','#14b8a6'];
+  let h=0; for(let c of name) h=(h+c.charCodeAt(0))%colors.length;
+  return colors[h];
+}
+function initials(name) { return name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase(); }
+function statusBadge(s) {
+  if(s==='active') return '<span class="badge-active">Active</span>';
+  if(s==='expired') return '<span class="badge-expired">Expired</span>';
+  return '<span class="badge-pending">Pending</span>';
+}
+function condBadge(c) {
+  const map={'Excellent':'badge-active','Good':'badge-active','Fair':'badge-pending','Needs Repair':'badge-expired'};
+  return `<span class="${map[c]||'badge-pending'}">${c}</span>`;
+}
+
+// ============ NAVIGATION ============
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelector(`.nav-item[onclick="showPage('${page}')"]`).classList.add('active');
+  renderPage(page);
+}
+
+function renderPage(page) {
+  const fns = {
+    dashboard: renderDashboard, members: renderMembers, attendance: renderAttendance,
+    payments: renderPayments, plans: renderPlans, trainers: renderTrainers,
+    schedule: renderSchedule, equipment: renderEquipment, reports: renderReports
+  };
+  if(fns[page]) fns[page]();
+}
+
+function openModal(id) {
+  populateSelects();
+  new bootstrap.Modal(document.getElementById(id)).show();
+}
+
+// ============ POPULATE SELECTS ============
+function populateSelects() {
+  const plans = DB.get('plans'), trainers = DB.get('trainers'), members = DB.get('members');
+  
+  const setPlanSelect = (id) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = plans.map(p=>`<option value="${p.id}">${p.name} - ₹${p.price}</option>`).join('');
+  };
+  setPlanSelect('m-plan'); setPlanSelect('p-plan');
+  
+  const setTrainerSelect = (id, includeNone=false) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = (includeNone?'<option value="">No Trainer</option>':'') + trainers.map(t=>`<option>${t.name}</option>`).join('');
+  };
+  setTrainerSelect('m-trainer',true); setTrainerSelect('cl-trainer',true);
+  
+  const pm = document.getElementById('p-member');
+  if(pm) pm.innerHTML = members.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+  
+  const mj = document.getElementById('m-join'), pd = document.getElementById('p-date');
+  const tj = document.getElementById('tr-join');
+  if(mj) mj.value = today(); if(pd) pd.value = today(); if(tj) tj.value = today();
+}
+
+// ============ TOAST ============
+function toast(msg, type='success') {
+  const icons = {success:'bi-check-circle-fill',error:'bi-x-circle-fill',info:'bi-info-circle-fill'};
+  const colors = {success:'#22c55e',error:'var(--primary)',info:'#3b82f6'};
+  const t = document.createElement('div');
+  t.className = `toast-msg ${type}`;
+  t.innerHTML = `<i class="bi ${icons[type]}" style="color:${colors[type]};font-size:18px"></i><span>${msg}</span>`;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(()=>t.remove(), 3500);
+}
+
+// ============ DASHBOARD ============
+function renderDashboard() {
+  document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  
+  const members = DB.get('members'), payments = DB.get('payments'), attendance = DB.get('attendance');
+  const active = members.filter(m=>m.status==='active');
+  const todayAtt = attendance.filter(a=>a.date===today());
+  const thisMonth = new Date().toISOString().substring(0,7);
+  const monthRevenue = payments.filter(p=>p.date.startsWith(thisMonth)).reduce((s,p)=>s+Number(p.amount),0);
+  
+  document.getElementById('stat-total').textContent = members.length;
+  document.getElementById('stat-active').textContent = active.length;
+  document.getElementById('stat-revenue').textContent = '₹'+monthRevenue.toLocaleString();
+  document.getElementById('stat-checkin').textContent = todayAtt.length;
+  
+  const tbody = document.getElementById('dash-member-tbody');
+  tbody.innerHTML = members.slice(-5).reverse().map(m=>`
+    <tr>
+      <td><div class="d-flex align-items-center gap-2">
+        <div class="avatar" style="background:${randColor(m.name)}22;color:${randColor(m.name)}">${initials(m.name)}</div>
+        <div><div style="font-weight:600;font-size:14px">${m.name}</div><div style="font-size:12px;color:#666">${m.email||m.phone}</div></div>
+      </div></td>
+      <td><span class="badge-plan">${m.plan}</span></td>
+      <td>${statusBadge(m.status)}</td>
+      <td style="color:#666;font-size:13px">${m.join}</td>
+    </tr>`).join('');
+  
+  const tc = document.getElementById('today-checkins');
+  tc.innerHTML = todayAtt.length ? todayAtt.map(a=>`
+    <div class="attendance-row">
+      <div class="avatar" style="background:${randColor(a.member)}22;color:${randColor(a.member)};width:32px;height:32px;font-size:11px">${initials(a.member)}</div>
+      <div style="flex:1"><div style="font-size:13px;font-weight:600">${a.member}</div></div>
+      <div class="time-badge">${a.checkin}</div>
+    </div>`).join('') : '<div style="color:#555;font-size:13px;text-align:center;padding:20px 0">No check-ins yet today</div>';
+  
+  document.getElementById('stat-checkin').textContent = todayAtt.length;
+}
+
+function doCheckin() {
+  const val = document.getElementById('checkin-search').value.trim().toLowerCase();
+  const members = DB.get('members');
+  const m = members.find(x=>x.name.toLowerCase().includes(val)||String(x.id)===val);
+  if(!m) { toast('Member not found','error'); return; }
+  if(m.status==='expired') { toast('Membership expired for '+m.name,'error'); return; }
+  
+  const att = DB.get('attendance');
+  const now = new Date();
+  const timeStr = now.toTimeString().substring(0,5);
+  att.push({id:DB.nextId('attendance'),memberId:m.id,member:m.name,checkin:timeStr,checkout:'',duration:'-',date:today()});
+  DB.set('attendance',att);
+  document.getElementById('checkin-search').value='';
+  toast(m.name+' checked in at '+timeStr,'success');
+  renderDashboard();
+}
+
+// ============ MEMBERS ============
+function renderMembers() {
+  const members = DB.get('members');
+  renderMemberTable(members);
+  populateSelects();
+}
+
+function renderMemberTable(members) {
+  const tbody = document.getElementById('members-tbody');
+  if(!members.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#555;padding:30px">No members found</td></tr>'; return; }
+  tbody.innerHTML = members.map(m=>`
+    <tr>
+      <td style="color:#555;font-size:13px">GYM${String(m.id).padStart(4,'0')}</td>
+      <td><div class="d-flex align-items-center gap-2">
+        <div class="avatar" style="background:${randColor(m.name)}22;color:${randColor(m.name)}">${initials(m.name)}</div>
+        <div><div style="font-weight:600">${m.name}</div><div style="font-size:12px;color:#666">${m.phone}</div></div>
+      </div></td>
+      <td style="font-size:13px">${m.phone}</td>
+      <td><span class="badge-plan">${m.plan}</span></td>
+      <td style="font-size:13px;color:#aaa">${m.join}</td>
+      <td style="font-size:13px;color:${m.status==='expired'?'var(--primary)':'#aaa'}">${m.expiry}</td>
+      <td>${statusBadge(m.status)}</td>
+      <td>
+        <button class="btn btn-outline-secondary btn-sm me-1" onclick="viewMember(${m.id})"><i class="bi bi-eye"></i></button>
+        <button class="btn btn-outline-secondary btn-sm me-1" onclick="renewMember(${m.id})"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="btn btn-sm" style="background:#1a1a1a;border:1px solid #333;color:#e57" onclick="deleteMember(${m.id})"><i class="bi bi-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function filterMembers(statusFilter) {
+  let members = DB.get('members');
+  const search = document.getElementById('member-search').value.toLowerCase();
+  if(search) members = members.filter(m=>m.name.toLowerCase().includes(search)||m.phone.includes(search)||m.email.toLowerCase().includes(search));
+  if(statusFilter) members = members.filter(m=>m.status===statusFilter);
+  renderMemberTable(members);
+}
+
+function addMember() {
+  const name = document.getElementById('m-name').value.trim();
+  const phone = document.getElementById('m-phone').value.trim();
+  if(!name||!phone) { toast('Name and phone are required','error'); return; }
+  
+  const plans = DB.get('plans');
+  const planId = parseInt(document.getElementById('m-plan').value);
+  const plan = plans.find(p=>p.id===planId);
+  const joinDate = document.getElementById('m-join').value||today();
+  const expiry = addDays(new Date(joinDate), plan ? plan.duration : 30);
+  
+  const members = DB.get('members');
+  members.push({
+    id: DB.nextId('members'), name, phone,
+    email: document.getElementById('m-email').value,
+    gender: document.getElementById('m-gender').value,
+    plan: plan?plan.name:'Custom',
+    planId,
+    join: joinDate, expiry,
+    trainer: document.getElementById('m-trainer').value,
+    address: document.getElementById('m-address').value,
+    emergency: document.getElementById('m-emergency').value,
+    health: document.getElementById('m-health').value,
+    status: 'active'
+  });
+  DB.set('members', members);
+  bootstrap.Modal.getInstance(document.getElementById('addMemberModal')).hide();
+  toast(name+' added successfully!','success');
+  renderMembers();
+}
+
+function viewMember(id) {
+  const m = DB.get('members').find(x=>x.id===id);
+  if(!m) return;
+  const color = randColor(m.name);
+  document.getElementById('view-member-body').innerHTML = `
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <div class="avatar" style="width:60px;height:60px;font-size:20px;background:${color}22;color:${color}">${initials(m.name)}</div>
+      <div>
+        <h4 style="margin:0;color:#fff">${m.name}</h4>
+        <div style="color:#888;font-size:14px">ID: GYM${String(m.id).padStart(4,'0')} &bull; ${m.gender}</div>
+        <div class="mt-1">${statusBadge(m.status)}</div>
+      </div>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-6"><div style="background:#1a1a1a;border-radius:8px;padding:14px">
+        <div style="font-size:11px;color:#666;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Contact</div>
+        <div style="margin-bottom:4px"><i class="bi bi-phone me-2" style="color:#555"></i>${m.phone}</div>
+        <div><i class="bi bi-envelope me-2" style="color:#555"></i>${m.email||'—'}</div>
+      </div></div>
+      <div class="col-md-6"><div style="background:#1a1a1a;border-radius:8px;padding:14px">
+        <div style="font-size:11px;color:#666;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Membership</div>
+        <div style="margin-bottom:4px"><i class="bi bi-tag me-2" style="color:#555"></i>${m.plan}</div>
+        <div><i class="bi bi-calendar-x me-2" style="color:#555"></i>Expires: ${m.expiry}</div>
+      </div></div>
+      <div class="col-md-6"><div style="background:#1a1a1a;border-radius:8px;padding:14px">
+        <div style="font-size:11px;color:#666;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Trainer</div>
+        <div>${m.trainer||'Not assigned'}</div>
+      </div></div>
+      <div class="col-md-6"><div style="background:#1a1a1a;border-radius:8px;padding:14px">
+        <div style="font-size:11px;color:#666;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">Health Notes</div>
+        <div>${m.health||'None'}</div>
+      </div></div>
+    </div>`;
+  new bootstrap.Modal(document.getElementById('viewMemberModal')).show();
+}
+
+function renewMember(id) {
+  const members = DB.get('members');
+  const m = members.find(x=>x.id===id);
+  if(!m) return;
+  const plans = DB.get('plans');
+  const plan = plans.find(p=>p.id===m.planId)||plans[0];
+  m.expiry = addDays(new Date(), plan.duration);
+  m.status = 'active';
+  DB.set('members', members);
+  toast(m.name+' membership renewed!','success');
+  renderMembers();
+}
+
+function deleteMember(id) {
+  if(!confirm('Delete this member?')) return;
+  const members = DB.get('members').filter(m=>m.id!==id);
+  DB.set('members', members);
+  toast('Member deleted','info');
+  renderMembers();
+}
+
+// ============ ATTENDANCE ============
+function renderAttendance() {
+  document.getElementById('att-date').value = today();
+  filterAttendance();
+  renderWeeklyAtt();
+}
+
+function filterAttendance() {
+  const date = document.getElementById('att-date').value||today();
+  const att = DB.get('attendance').filter(a=>a.date===date);
+  const tbody = document.getElementById('att-tbody');
+  tbody.innerHTML = att.length ? att.map(a=>`
+    <tr>
+      <td><div class="d-flex align-items-center gap-2">
+        <div class="avatar" style="width:32px;height:32px;font-size:11px;background:${randColor(a.member)}22;color:${randColor(a.member)}">${initials(a.member)}</div>
+        ${a.member}
+      </div></td>
+      <td><span style="color:#22c55e;font-weight:600">${a.checkin}</span></td>
+      <td>${a.checkout||'<span style="color:#555">In gym</span>'}</td>
+      <td style="color:#aaa">${a.duration}</td>
+      <td style="color:#555;font-size:13px">${a.date}</td>
+    </tr>`).join('')
+  : '<tr><td colspan="5" style="text-align:center;color:#555;padding:30px">No attendance records for this date</td></tr>';
+  
+  const inGym = att.filter(a=>!a.checkout).length;
+  document.getElementById('att-total-today').textContent = att.length;
+  document.getElementById('att-in-gym').textContent = inGym;
+  document.getElementById('att-out').textContent = att.length - inGym;
+}
+
+function renderWeeklyAtt() {
+  const att = DB.get('attendance');
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const counts = days.map((_,i)=>{
+    const d = new Date(); d.setDate(d.getDate()-d.getDay()+i);
+    return att.filter(a=>a.date===fmtDate(d)).length;
+  });
+  const max = Math.max(...counts,1);
+  document.getElementById('weekly-att').innerHTML = `
+    <div style="display:flex;align-items:flex-end;gap:6px;height:100px">
+      ${counts.map((c,i)=>`
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <div style="font-size:11px;color:#555">${c}</div>
+          <div style="width:100%;background:${c>0?'var(--primary)':'#222'};height:${Math.max(8,(c/max)*70)}px;border-radius:4px 4px 0 0"></div>
+          <div style="font-size:10px;color:#555">${days[i]}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+// ============ PAYMENTS ============
+function renderPayments() {
+  const payments = DB.get('payments');
+  const thisMonth = new Date().toISOString().substring(0,7);
+  const total = payments.reduce((s,p)=>s+Number(p.amount),0);
+  const month = payments.filter(p=>p.date.startsWith(thisMonth)).reduce((s,p)=>s+Number(p.amount),0);
+  const pending = DB.get('members').filter(m=>m.status==='expired').length;
+  
+  document.getElementById('total-revenue').textContent = '₹'+total.toLocaleString();
+  document.getElementById('month-revenue').textContent = '₹'+month.toLocaleString();
+  document.getElementById('pending-dues').textContent = pending+' members';
+  
+  const tbody = document.getElementById('pay-tbody');
+  tbody.innerHTML = payments.slice().reverse().map(p=>`
+    <tr>
+      <td style="color:#555;font-size:13px">RCP${String(p.id).padStart(5,'0')}</td>
+      <td style="font-weight:600">${p.member}</td>
+      <td><span class="badge-plan">${p.plan}</span></td>
+      <td style="color:#22c55e;font-weight:700">₹${Number(p.amount).toLocaleString()}</td>
+      <td style="font-size:13px;color:#aaa">${p.method}</td>
+      <td style="font-size:13px;color:#aaa">${p.date}</td>
+      <td><span class="badge-active">Paid</span></td>
+    </tr>`).join('');
+}
+
+function addPayment() {
+  const memberId = parseInt(document.getElementById('p-member').value);
+  const amount = document.getElementById('p-amount').value;
+  if(!amount) { toast('Amount is required','error'); return; }
+  
+  const members = DB.get('members');
+  const m = members.find(x=>x.id===memberId);
+  const payments = DB.get('payments');
+  const plans = DB.get('plans');
+  const planId = parseInt(document.getElementById('p-plan').value);
+  const plan = plans.find(p=>p.id===planId);
+  
+  payments.push({
+    id: DB.nextId('payments'), memberId, member: m?m.name:'Unknown',
+    plan: plan?plan.name:'Custom', amount: Number(amount),
+    method: document.getElementById('p-method').value,
+    date: document.getElementById('p-date').value||today(),
+    status: 'paid', notes: document.getElementById('p-notes').value
+  });
+  DB.set('payments', payments);
+  
+  // renew membership
+  if(m && plan) {
+    m.status='active'; m.expiry=addDays(new Date(),plan.duration); m.plan=plan.name; m.planId=planId;
+    DB.set('members', members);
+  }
+  
+  bootstrap.Modal.getInstance(document.getElementById('addPaymentModal')).hide();
+  toast('Payment recorded successfully!','success');
+  renderPayments();
+}
+
+// ============ PLANS ============
+function renderPlans() {
+  const plans = DB.get('plans');
+  const members = DB.get('members');
+  document.getElementById('plans-grid').innerHTML = plans.map((p,i)=>{
+    const count = members.filter(m=>m.planId===p.id).length;
+    return `
+    <div class="col-md-3 col-sm-6">
+      <div class="plan-card ${i===3?'popular':''}">
+        ${i===3?'<div style="position:absolute;top:-1px;right:16px;background:var(--accent);color:#111;font-size:11px;font-weight:700;padding:4px 12px;border-radius:0 0 8px 8px;letter-spacing:1px">POPULAR</div>':''}
+        <div style="font-size:13px;color:#888;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">${p.name}</div>
+        <div class="plan-price">₹${Number(p.price).toLocaleString()}<span>/${p.duration}d</span></div>
+        <div style="color:#555;font-size:13px;margin:12px 0">${p.desc}</div>
+        <hr style="border-color:#2a2a2a">
+        <ul style="list-style:none;padding:0;margin:0 0 16px">
+          ${(p.features||[]).map(f=>`<li style="font-size:13px;margin-bottom:6px;color:#aaa"><i class="bi bi-check2 me-2" style="color:#22c55e"></i>${f}</li>`).join('')}
+        </ul>
+        <div style="font-size:12px;color:#555">${count} active member${count!==1?'s':''}</div>
+        <div class="mt-3 d-flex gap-2">
+          <button class="btn btn-outline-secondary btn-sm flex-fill" onclick="deletePlan(${p.id})"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addPlan() {
+  const name=document.getElementById('pl-name').value.trim();
+  const price=document.getElementById('pl-price').value;
+  const duration=document.getElementById('pl-duration').value;
+  if(!name||!price||!duration) { toast('Name, price, duration required','error'); return; }
+  const plans=DB.get('plans');
+  plans.push({
+    id:DB.nextId('plans'),name,duration:parseInt(duration),price:Number(price),
+    features:document.getElementById('pl-features').value.split(',').map(f=>f.trim()).filter(Boolean),
+    desc:document.getElementById('pl-desc').value
+  });
+  DB.set('plans',plans);
+  bootstrap.Modal.getInstance(document.getElementById('addPlanModal')).hide();
+  toast('Plan added!','success'); renderPlans();
+}
+
+function deletePlan(id) {
+  if(!confirm('Delete this plan?')) return;
+  DB.set('plans', DB.get('plans').filter(p=>p.id!==id));
+  toast('Plan deleted','info'); renderPlans();
+}
+
+// ============ TRAINERS ============
+function renderTrainers() {
+  const trainers = DB.get('trainers');
+  const members = DB.get('members');
+  document.getElementById('trainers-grid').innerHTML = trainers.map(t=>{
+    const assigned = members.filter(m=>m.trainer===t.name).length;
+    const color = randColor(t.name);
+    return `
+    <div class="col-md-4">
+      <div class="panel">
+        <div class="panel-body">
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="avatar" style="width:54px;height:54px;font-size:18px;background:${color}22;color:${color}">${initials(t.name)}</div>
+            <div>
+              <div style="font-weight:700;font-size:16px">${t.name}</div>
+              <div style="font-size:13px;color:#888">${t.spec}</div>
+            </div>
+          </div>
+          <div class="row g-2 mb-3" style="font-size:13px">
+            <div class="col-6"><span style="color:#555">Experience</span><br><strong>${t.exp} yrs</strong></div>
+            <div class="col-6"><span style="color:#555">Clients</span><br><strong style="color:#22c55e">${assigned}</strong></div>
+            <div class="col-6"><span style="color:#555">Phone</span><br><strong>${t.phone}</strong></div>
+            <div class="col-6"><span style="color:#555">Salary</span><br><strong>₹${Number(t.salary).toLocaleString()}</strong></div>
+          </div>
+          <div style="font-size:12px;color:#555;margin-bottom:12px"><i class="bi bi-award me-1"></i>${t.cert||'—'}</div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary flex-fill" onclick="deleteTrainer(${t.id})"><i class="bi bi-trash me-1"></i>Remove</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addTrainer() {
+  const name=document.getElementById('tr-name').value.trim();
+  const spec=document.getElementById('tr-spec').value.trim();
+  if(!name||!spec) { toast('Name and specialization required','error'); return; }
+  const trainers=DB.get('trainers');
+  trainers.push({
+    id:DB.nextId('trainers'),name,spec,
+    phone:document.getElementById('tr-phone').value,
+    exp:parseInt(document.getElementById('tr-exp').value)||0,
+    cert:document.getElementById('tr-cert').value,
+    salary:Number(document.getElementById('tr-salary').value)||0,
+    join:document.getElementById('tr-join').value
+  });
+  DB.set('trainers',trainers);
+  bootstrap.Modal.getInstance(document.getElementById('addTrainerModal')).hide();
+  toast(name+' added as trainer!','success'); renderTrainers();
+}
+
+function deleteTrainer(id) {
+  if(!confirm('Remove this trainer?')) return;
+  DB.set('trainers', DB.get('trainers').filter(t=>t.id!==id));
+  toast('Trainer removed','info'); renderTrainers();
+}
+
+// ============ SCHEDULE ============
+function renderSchedule() {
+  const classes = DB.get('classes');
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const now = new Date();
+  const todayIdx = now.getDay();
+  
+  let calHTML = '<div class="cal-grid">';
+  days.forEach((day,i)=>{
+    const dayClasses = classes.filter(c=>c.day===day);
+    const isToday = i===todayIdx;
+    calHTML += `<div class="cal-day ${isToday?'today':''}">
+      <div class="cal-day-num" style="color:${isToday?'var(--primary)':'#aaa'}">${day.substring(0,3)}</div>
+      ${dayClasses.map(c=>`<div class="cal-event" title="${c.name} - ${c.trainer}">${c.time} ${c.name}</div>`).join('')}
+    </div>`;
+  });
+  calHTML += '</div>';
+  document.getElementById('schedule-cal').innerHTML = calHTML;
+  
+  document.getElementById('upcoming-classes').innerHTML = classes.slice(0,5).map(c=>`
+    <div style="border-bottom:1px solid #222;padding:10px 0">
+      <div style="font-weight:600;font-size:14px">${c.name}</div>
+      <div style="font-size:12px;color:#888">${c.day} &bull; ${c.time} &bull; ${c.duration}min</div>
+      <div style="font-size:12px;color:#555;margin-top:2px"><i class="bi bi-person me-1"></i>${c.trainer||'TBA'} &bull; <i class="bi bi-people me-1"></i>Max ${c.capacity}</div>
+    </div>`).join('');
+}
+
+function addClass() {
+  const name=document.getElementById('cl-name').value.trim();
+  if(!name) { toast('Class name required','error'); return; }
+  const classes=DB.get('classes');
+  classes.push({
+    id:DB.nextId('classes'),name,
+    trainer:document.getElementById('cl-trainer').value,
+    day:document.getElementById('cl-day').value,
+    time:document.getElementById('cl-time').value,
+    duration:parseInt(document.getElementById('cl-duration').value)||60,
+    capacity:parseInt(document.getElementById('cl-capacity').value)||20
+  });
+  DB.set('classes',classes);
+  bootstrap.Modal.getInstance(document.getElementById('addClassModal')).hide();
+  toast('Class added!','success'); renderSchedule();
+}
+
+// ============ EQUIPMENT ============
+function renderEquipment() {
+  const equip = DB.get('equipment');
+  const tbody = document.getElementById('equip-tbody');
+  tbody.innerHTML = equip.map(e=>`
+    <tr>
+      <td style="color:#555;font-size:13px">EQ${String(e.id).padStart(3,'0')}</td>
+      <td style="font-weight:600">${e.name}</td>
+      <td><span class="badge-plan">${e.category}</span></td>
+      <td>${e.qty}</td>
+      <td>${condBadge(e.condition)}</td>
+      <td style="color:#555;font-size:13px">${e.service}</td>
+      <td>
+        <button class="btn btn-sm" style="background:#1a1a1a;border:1px solid #333;color:#e57" onclick="deleteEquip(${e.id})"><i class="bi bi-trash"></i></button>
+      </td>
+    </tr>`).join('');
+}
+
+function addEquipment() {
+  const name=document.getElementById('eq-name').value.trim();
+  if(!name) { toast('Equipment name required','error'); return; }
+  const equip=DB.get('equipment');
+  equip.push({
+    id:DB.nextId('equipment'),name,
+    category:document.getElementById('eq-cat').value,
+    qty:parseInt(document.getElementById('eq-qty').value)||1,
+    condition:document.getElementById('eq-condition').value,
+    purchase:document.getElementById('eq-purchase').value,
+    service:document.getElementById('eq-service').value
+  });
+  DB.set('equipment',equip);
+  bootstrap.Modal.getInstance(document.getElementById('addEquipModal')).hide();
+  toast('Equipment added!','success'); renderEquipment();
+}
+
+function deleteEquip(id) {
+  if(!confirm('Delete this equipment?')) return;
+  DB.set('equipment', DB.get('equipment').filter(e=>e.id!==id));
+  toast('Removed','info'); renderEquipment();
+}
+
+// ============ REPORTS ============
+function renderReports() {
+  const payments = DB.get('payments');
+  const members = DB.get('members');
+  const plans = DB.get('plans');
+  
+  // Revenue by plan
+  const planRevenue = {};
+  payments.forEach(p=>{ planRevenue[p.plan]=(planRevenue[p.plan]||0)+Number(p.amount); });
+  const maxRev = Math.max(...Object.values(planRevenue),1);
+  document.getElementById('rev-by-plan').innerHTML = Object.entries(planRevenue).map(([plan,amt])=>`
+    <div style="margin-bottom:14px">
+      <div class="d-flex justify-content-between mb-1">
+        <span style="font-size:13px">${plan}</span>
+        <span style="font-size:13px;font-weight:600;color:#22c55e">₹${amt.toLocaleString()}</span>
+      </div>
+      <div class="progress"><div class="progress-bar" style="width:${(amt/maxRev*100).toFixed(0)}%"></div></div>
+    </div>`).join('') || '<div style="color:#555;text-align:center;padding:20px">No payment data</div>';
+  
+  // Membership distribution
+  const statusCount = {active:0,expired:0,pending:0};
+  members.forEach(m=>statusCount[m.status]=(statusCount[m.status]||0)+1);
+  const total = members.length || 1;
+  document.getElementById('mem-distribution').innerHTML = `
+    <div style="display:flex;gap:12px;margin-bottom:20px">
+      ${Object.entries(statusCount).map(([s,c])=>`
+        <div style="flex:1;background:#1a1a1a;border-radius:10px;padding:14px;text-align:center">
+          <div style="font-size:24px;font-weight:700;color:${s==='active'?'#22c55e':s==='expired'?'var(--primary)':'var(--accent)'}">${c}</div>
+          <div style="font-size:12px;color:#555;text-transform:capitalize">${s}</div>
+        </div>`).join('')}
+    </div>
+    ${Object.entries(statusCount).map(([s,c])=>`
+      <div style="margin-bottom:10px">
+        <div class="d-flex justify-content-between mb-1">
+          <span style="font-size:13px;text-transform:capitalize">${s}</span>
+          <span style="font-size:13px">${c} (${Math.round(c/total*100)}%)</span>
+        </div>
+        <div class="progress"><div class="progress-bar" style="width:${c/total*100}%;background:${s==='active'?'#22c55e':s==='expired'?'var(--primary)':'var(--accent)'}"></div></div>
+      </div>`).join('')}`;
+}
+
+function exportCSV(type) {
+  let data = DB.get(type);
+  if(!data.length) { toast('No data to export','info'); return; }
+  const keys = Object.keys(data[0]);
+  const csv = [keys.join(','),...data.map(r=>keys.map(k=>JSON.stringify(r[k]||'')).join(','))].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = `gym_${type}_${today()}.csv`;
+  a.click();
+  toast(`${type} data exported!`,'success');
+}
+
+function printReport() {
+  window.print();
+}
+
+// ============ INIT ============
+document.addEventListener('DOMContentLoaded',()=>{
+  seedData();
+  renderDashboard();
+});
+</script>
+</body>
+</html>
